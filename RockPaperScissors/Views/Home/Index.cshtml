@@ -31,6 +31,16 @@
         <button id="playButton">Play</button>
     </div>
 </div>
+<!--This row will display the choice (rock, paper, scissors) after the player has submitted it-->
+<div class="row" style="display:none" id="playChoiceRow">
+    <div class="col-3">
+        <label>You chose:</label>
+    </div>
+    <div class="col-3">
+        <!--The playChoice span element will container one of the following words based on the players selection: "Rock", "Paper", "Scissors-->
+        <span id="playChoice"></span>
+    </div>
+</div>
 @section Scripts{
     <!--Reference JavaScript SignalR client library-->
     <script src="~/lib/signalr/signalr.js"></script>
@@ -55,5 +65,15 @@
                 $("#gameStatus").html("In Progress");
                 $("#playRow").show();
             })
+        connection.on("@RockPaperScissors.Constants.GameEventNames.WaitingForPlayerToPlay",
+            () => { $("#gameStatus").html("Waiting other player to select") });
+        connection.on("@RockPaperScissors.Constants.GameEventNames.GameEnd",
+            (update) => { $("#gameStatus").html(update) });
+        $("#playButton").click(function () {
+            connection.invoke("selectPlay", $("#playSelect").val());
+            $("#playChoiceRow").show();
+            $("#playChoice").html($("#playSelect").val());
+            $("#playRow").hide();
+        })
     </script>
 }
