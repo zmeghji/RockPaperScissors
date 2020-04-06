@@ -27,20 +27,17 @@ namespace RockPaperScissors.Services
     }
     public class GameDataService : IGameDataService
     {
-        private readonly IGameDbContextFactory _gameDbContextFactory;
+        private readonly GameDbContext _gameDbContext;
 
         //We inject the GameDbContextFactory into the service so we can create a new instance of DbContext when needed
-        public GameDataService(IGameDbContextFactory gameDbContextFactory)
+        public GameDataService(GameDbContext gameDbContext)
         {
-            _gameDbContextFactory = gameDbContextFactory;
+            _gameDbContext = gameDbContext;
         }
-
-
 
         public async Task<Game> FindGameWaitingForPlayer()
         {
-            using var gameDbContext = _gameDbContextFactory.Create();
-            return await gameDbContext.Games
+            return await _gameDbContext.Games
                 .Include(g => g.Player1)
                 .Include(g => g.Player2)
                 .FirstOrDefaultAsync(g => g.Player2 == null);
@@ -48,7 +45,6 @@ namespace RockPaperScissors.Services
 
         public async Task<Game> CreateGameWithPlayer(string playerSessionId)
         {
-            using var gameDbContext = _gameDbContextFactory.Create();
             var game = new Game
             {
                 Id = Guid.NewGuid(),
@@ -57,27 +53,25 @@ namespace RockPaperScissors.Services
                     Id = playerSessionId
                 }
             };
-            gameDbContext.Games.Add(game);
-            await gameDbContext.SaveChangesAsync();
+            _gameDbContext.Games.Add(game);
+            await _gameDbContext.SaveChangesAsync();
             return game;
         }
 
         public async Task<Game> AddPlayerToGame(Game game, string playerSessionId)
         {
-            using var gameDbContext = _gameDbContextFactory.Create();
-            gameDbContext.Attach(game);
+            _gameDbContext.Attach(game);
             game.Player2 = new GameSession
             {
                 Id = playerSessionId
             };
-            await gameDbContext.SaveChangesAsync();
+            await _gameDbContext.SaveChangesAsync();
             return game;
         }
 
         public async Task<Game> FindGameBySessionId(string playerSessionId)
         {
-            using var gameDbContext = _gameDbContextFactory.Create();
-            return await gameDbContext.Games
+            return await _gameDbContext.Games
                 .Include(g => g.Player1)
                 .Include(g => g.Player2)
                 .FirstAsync(g =>
@@ -85,11 +79,10 @@ namespace RockPaperScissors.Services
         }
         public async Task<Game> UpdatePlayForPlayer(Game game, string playerSessionId, Play play)
         {
-            using var gameDbContext = _gameDbContextFactory.Create();
-            gameDbContext.Attach(game);
+            _gameDbContext.Attach(game);
             var player = game.GetPlayerSession(playerSessionId);
             player.Play = play;
-            await gameDbContext.SaveChangesAsync();
+            await _gameDbContext.SaveChangesAsync();
             return game;
         }
     }

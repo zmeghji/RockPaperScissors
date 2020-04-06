@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -26,11 +27,14 @@ namespace RockPaperScissors
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IGameDbContextFactory, GameDbContextFactory>();
             services.AddSingleton<IGameService, GameService>();
             services.AddControllersWithViews();
             services.AddSignalR();
-            services.AddSingleton<IGameDataService, GameDataService>();
+            services.AddScoped<IGameDataService, GameDataService>();
+            services.AddDbContext<GameDbContext>(o =>
+            {
+                o.UseInMemoryDatabase("Game");
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
