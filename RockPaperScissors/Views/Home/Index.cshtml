@@ -1,0 +1,59 @@
+﻿@{
+    ViewData["Title"] = "Rock Paper Scissors";
+}
+<h1>Rock Paper Scissors!</h1>
+<!--This row displays the current status for the game-->
+<div class="row">
+    <div class="col-3">
+        <label>Game Status</label>
+    </div>
+    <div class="col-3">
+        <!-- The "gameStatus" span displays the actual text for the status of the game-->
+        <span id="gameStatus">Looking For Game</span>
+    </div>
+</div>
+<!--This row gives allows the player to select rock, paper or scissors and submit. It is hidden until the game starts-->
+<div class="row" id="playRow" style="display:none">
+    <div class="col-3">
+        <label>Select Play</label>
+    </div>
+    <div class="col-3">
+        <!--This is the dropdown which allows the user to select rock , paper or scissors-->
+        <select class="form-control" id="playSelect">
+            @foreach (var play in Enum.GetValues(typeof(RockPaperScissors.Data.Play)))
+            {
+                <option value=@play>@play</option>
+            }
+        </select>
+    </div>
+    <div class="col-3">
+        <!--This button allows the player to submit their choice-->
+        <button id="playButton">Play</button>
+    </div>
+</div>
+@section Scripts{
+    <!--Reference JavaScript SignalR client library-->
+    <script src="~/lib/signalr/signalr.js"></script>
+
+    <script>
+        //the setupSignalR function will create a connection to the GameHub
+        var setupSignalR = function () {
+            //configure connection by specifying the route of the hub ("/gameHub")
+            var connection = new signalR.HubConnectionBuilder()
+                .withUrl("/gamehub")
+                .build();
+            //Start the connection to the hub
+            connection.start()
+                .then(() => connection.invoke('joinGame'));
+            return connection;
+        };
+        var connection = setupSignalR();
+        connection.on("@RockPaperScissors.Constants.GameEventNames.WaitingForPlayerToJoin",
+            () => {$("#gameStatus").html("Waiting for another player to join.")})
+        connection.on("@RockPaperScissors.Constants.GameEventNames.GameStart",
+            () => {
+                $("#gameStatus").html("In Progress");
+                $("#playRow").show();
+            })
+    </script>
+}
