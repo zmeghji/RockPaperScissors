@@ -29,7 +29,6 @@ namespace RockPaperScissors.Services
     {
         private readonly GameDbContext _gameDbContext;
 
-        //We inject the GameDbContextFactory into the service so we can create a new instance of DbContext when needed
         public GameDataService(GameDbContext gameDbContext)
         {
             _gameDbContext = gameDbContext;
